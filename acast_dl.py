@@ -4,7 +4,8 @@
 # dependencies = [
 #     "feedparser",
 #     "mutagen",
-#     "tqdm"
+#     "tqdm",
+#     "filetype"
 # ]
 # ///
 
@@ -13,6 +14,7 @@ import re
 import json
 import argparse
 import feedparser
+import filetype
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 from email.utils import parsedate_to_datetime
@@ -94,10 +96,13 @@ class PodcastDownloader:
         if image_url:
             try:
                 image_data = urlopen(image_url).read()
+                image_mime_type = filetype.guess(image_data)
+                if image_mime_type is None:
+                    print(f"Warning: can't guess image mime type for {image_url}")
                 tags.add(
                     APIC(
                         encoding=3,
-                        mime="image/jpeg",
+                        mime=image_mime_type,
                         type=3,  # cover (front)
                         desc="Cover",
                         data=image_data,
