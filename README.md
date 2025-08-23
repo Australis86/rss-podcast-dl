@@ -2,7 +2,7 @@
 
 The purpose of this script is to easily download podcast episodes from [Acast](https://www.acast.com/) for offline listening.
 
-It might also work for other podcast platforms as long as you can get a RSS feed URL.
+It also works for other podcast platforms as long as you can get a RSS feed URL (e.g. [Ausha](https://www.ausha.co/), [Radio France](https://www.radiofrance.fr/podcasts), etc.).
 
 ## Limitations
 
@@ -11,7 +11,7 @@ It might also work for other podcast platforms as long as you can get a RSS feed
 
 ## AI usage
 
-Please note that part of this script has been written using [OpenAI](https://openai.com/) [ChatGPT](https://chatgpt.com/) (GPT-4o + GPT-5) as a teammate.
+Please note that parts of this script has been written using [OpenAI](https://openai.com/) [ChatGPT](https://chatgpt.com/) (GPT-4o + GPT-5) as a teammate.
 
 This project is an excuse to see how good AI is at helping to write small tools (I always have lots of ideas but don't have time to implement them).
 
@@ -19,11 +19,12 @@ This project is an excuse to see how good AI is at helping to write small tools 
 
 I try to keep the number of depencies as low as possible.
 
-Currently `acast_dl` relies on three dependencies :
+Currently `acast_dl` relies on four :
 
-- [`feedparser`](https://github.com/kurtmckee/feedparser) : for retrieving and parsing the RSS XML feed
-- [`mutagen`](https://github.com/quodlibet/mutagen) : for updating ID3 MP3 tags
-- [`tqdm`](https://github.com/tqdm/tqdm) : to show a progress bar when downloading the files
+- [`feedparser`](https://github.com/kurtmckee/feedparser) for retrieving and parsing the RSS XML feed
+- [`mutagen`](https://github.com/quodlibet/mutagen) for updating ID3 MP3 tags
+- [`tqdm`](https://github.com/tqdm/tqdm) to show a progress bar when downloading the files
+- [`filetype`](https://github.com/h2non/filetype.py) to guess the mime type of cover images
 
 You can either install them with your favorite package manager or install [`uv`](https://docs.astral.sh/uv/) and launch `acast_dl.py` right away.
 
@@ -36,7 +37,8 @@ It makes use of [PEP-723](https://peps.python.org/pep-0723/) that allows to add 
 # dependencies = [
 #     "feedparser",
 #     "mutagen",
-#     "tqdm"
+#     "tqdm",
+#     "filetype"
 # ]
 # ///
 ```
@@ -44,12 +46,12 @@ It makes use of [PEP-723](https://peps.python.org/pep-0723/) that allows to add 
 When launched the first time you'll see `uv` downloading and installing the dependencies :
 
 ```
-Prepared 4 packages in 759ms
-Installed 4 packages in 4ms
- + feedparser==6.0.11
- + mutagen==1.47.0
- + sgmllib3k==1.0.0
- + tqdm==4.67.1
+Installed 5 packages in 32ms
+ ~ feedparser==6.0.11
+ ~ filetype==1.2.0
+ ~ mutagen==1.47.0
+ ~ sgmllib3k==1.0.0
+ ~ tqdm==4.67.1
 ```
 
 I got the inspiration to use `uv` thanks to this blog post : [Fun with uv and PEP 723](https://www.cottongeeks.com/articles/2025-06-24-fun-with-uv-and-pep-723) (related [hn post](https://news.ycombinator.com/item?id=44369388)).
@@ -63,12 +65,13 @@ TODO
 # TODO
 
 - [ ] Update this `README.md` file
+  - [ ] "Usage" chapter
 - [ ] add arguments
-  - [ ] `--override` : override any existing podcast file
-  - [ ] `--no-tag` : don't update MP3 ID3 tags
-  - [ ] `--ignore-rss-cache` : ignore ETag
-  - [ ] `--rss-cache-file` : to override `.rss_cache.json` (not sure about the usefulness of this one)
+  - [ ] `--overwrite` : overwrite any already downloaded podcast file
+  - [ ] `--no-tag` : don't set MP3 ID3 tags
+  - [ ] `--ignore-rss-cache` : ignore [ETag](https://en.wikipedia.org/wiki/HTTP_ETag)
   - [ ] `--max-download` : download only the latest / most recent X podcast episodes
+  - [ ] `--cover-as-jpeg` : convert all cover images to JPEG
 
 # Similar projects
 
