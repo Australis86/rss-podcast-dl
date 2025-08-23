@@ -68,10 +68,10 @@ TODO
   - [ ] "Usage" chapter
 - [ ] add arguments
   - [ ] `--overwrite` : overwrite any already downloaded podcast file
-  - [ ] `--no-tag` : don't set MP3 ID3 tags
-  - [ ] `--ignore-rss-cache` : ignore [ETag](https://en.wikipedia.org/wiki/HTTP_ETag)
+  - [ ] `--ignore-rss-cache` : ignore [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag) and [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) headers
   - [ ] `--max-download` : download only the latest / most recent X podcast episodes
   - [ ] `--cover-as-jpeg` : convert all cover images to JPEG
+  - [ ] `--prefix` : prefix MP3 filenames with ??? (pubDate as `YYYY-MM-DD` ? season/episode as `SxEy` (if available) ?)
 
 # Similar projects
 
