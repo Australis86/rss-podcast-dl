@@ -23,37 +23,62 @@ from mutagen.id3 import ID3, APIC, COMM, TIT2, TPE1, TALB, TDRC, WOAS, ID3NoHead
 
 
 class CachedRSSFeed:
-    def __init__(self, cache_file="rss_cache.json"):
-        self.cache_file = cache_file
-        self._load_cache()
+    def __init__(self, rss_cache_file="rss_cache.json"):
+        self.rss_cache_file = rss_cache_file
+        self.feeds = self._load_cache()
 
     def _load_cache(self):
-        if os.path.exists(self.cache_file):
-            with open(self.cache_file, "r") as f:
-                self.cache = json.load(f)
-        else:
-            self.cache = {}
+        if not os.path.exists(self.rss_cache_file):
+            return {}
+        try:
+            with open(self.rss_cache_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print(f"Warning: {self.cache_file} is corrupted. Starting with empty cache.")
+            return {}
 
-    def _save_cache(self):
-        with open(self.cache_file, "w") as f:
-            json.dump(self.cache, f)
+    def save_cache(self):
+        with open(self.rss_cache_file, "w", encoding="utf-8") as f:
+            json.dump(self.feeds, f)
+
+    def get_all_feeds(self):
+        return list(self.feeds)
+
+    def is_empty(self):
+        return len(self.feeds) == 0
 
     def fetch(self, url, user_agent):
-        etag = self.cache.get(url, {}).get("etag")
-        modified = self.cache.get(url, {}).get("modified")
+        saved_etag = self.feeds.get(url, {}).get("etag")
+        saved_modified = self.feeds.get(url, {}).get("last-modified")
 
-        feed = feedparser.parse(url, etag=etag, modified=modified, agent=user_agent)
+        feed = feedparser.parse(url, etag=saved_etag, modified=saved_modified, agent=user_agent)
 
-        if feed.get("status") == 304:
-            print("Feed not modified")
-            return None
+        if not self.feeds.get(url):
+            print("New feed!")
+        else:
+            if feed.get("status") == 304:
+                print("Feed not modified (same ETag)")
+                return None
+            elif not saved_etag:
+                if saved_modified:
+                    current_modified = feed.get("modified", "")
+                    if current_modified:
+                        saved_datetime = parsedate_to_datetime(saved_modified)
+                        saved_timestamp = saved_datetime.strftime("%s")
+                        current_datetime = parsedate_to_datetime(current_modified)
+                        current_timestamp = current_datetime.strftime("%s")
+                        if saved_timestamp >= current_timestamp:
+                            print("Feed not modified (same Last-Modified)")
+                            return None
+                else:
+                    print("Warning: no ETag and no Last-Modified")
+                print("New episode(s) available!")
 
-        print("New episode(s) available!")
-        self.cache[url] = {
-            "etag": feed.get("etag"),
-            "modified": feed.get("modified"),
+        self.feeds[url] = {
+            "etag": feed.get("etag", ""),
+            "last-modified": feed.get("modified", ""),
         }
-        self._save_cache()
+
         return feed
 
 
@@ -214,12 +239,17 @@ class PodcastDownloader:
             else:
                 print(f"Already exists: {file_path}")
 
+        rss.save_cache()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Download podcast episodes from an Acast RSS feed and embed metadata into MP3 files."
+        description="Download podcast episodes from an Acast RSS feed (or any other podcast platform) and embed metadata into MP3 files."
     )
-    parser.add_argument("--rss-url", required=True, help="URL of the podcast RSS feed")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--rss-url", help="Podcast RSS feed URL")
+    group.add_argument("--update", action="store_true", help="Update podcasts from rss_cache.json")
+
     parser.add_argument(
         "--output-dir",
         default="podcasts",
@@ -233,7 +263,21 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    downloader = PodcastDownloader(
-        rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir
-    )
-    downloader.download()
+    if args.update:
+        rss = CachedRSSFeed()
+        if rss.is_empty():
+            print("Error: rss_cache.json not found or empty. Cannot update.")
+            exit(1)
+        for feed_url in rss.get_all_feeds():
+            print(f"Updating feed: {feed_url}")
+            downloader = PodcastDownloader(
+                rss_url=feed_url,
+                user_agent=args.user_agent,
+                output_dir=args.output_dir,
+            )
+            downloader.download()
+    else:
+        downloader = PodcastDownloader(
+            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir
+        )
+        downloader.download()
