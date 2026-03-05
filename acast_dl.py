@@ -122,7 +122,7 @@ class PodcastDownloader:
             tags.add(
                 COMM(
                     encoding=3,
-                    lang="fra",
+                    lang="eng",
                     desc="desc",
                     text=metadata.get("description", ""),
                 )
