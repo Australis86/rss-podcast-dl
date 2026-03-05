@@ -121,7 +121,7 @@ class PodcastDownloader:
         if image_url:
             try:
                 image_data = urlopen(image_url).read()
-                image_mime_type = filetype.guess(image_data)
+                image_mime_type = filetype.guess_mime(image_data)
                 if image_mime_type is None:
                     print(f"Warning: can't guess image mime type for {image_url}")
                 tags.add(

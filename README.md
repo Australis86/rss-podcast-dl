@@ -17,16 +17,20 @@ This project is an excuse to see how good AI is at helping to write small tools 
 
 # Dependencies
 
-I try to keep the number of depencies as low as possible.
+I have tried to keep the number of depencies as low as possible.
 
-Currently `acast_dl` relies on four :
+Currently `acast_dl` relies on four:
 
 - [`feedparser`](https://github.com/kurtmckee/feedparser) for retrieving and parsing the RSS XML feed
 - [`mutagen`](https://github.com/quodlibet/mutagen) for updating ID3 MP3 tags
 - [`tqdm`](https://github.com/tqdm/tqdm) to show a progress bar when downloading the files
 - [`filetype`](https://github.com/h2non/filetype.py) to guess the mime type of cover images
 
-You can either install them with your favorite package manager or install [`uv`](https://docs.astral.sh/uv/) and launch `acast_dl.py` right away.
+You can either install them with your favorite package manager or install [`uv`](https://docs.astral.sh/uv/) and launch `acast_dl.py` right away. If you do not have `uv` installed then you will either need to modify the shebang or call the script explicitly using Python, e.g.
+
+```
+python3 ./acast_dl.py
+```
 
 It makes use of [PEP-723](https://peps.python.org/pep-0723/) that allows to add metadata :
 
@@ -72,6 +76,7 @@ TODO
   - [ ] `--max-download` : download only the latest / most recent X podcast episodes
   - [ ] `--cover-as-jpeg` : convert all cover images to JPEG
   - [ ] `--prefix` : prefix MP3 filenames with ??? (pubDate as `YYYY-MM-DD` ? season/episode as `SxEy` (if available) ?)
+- [ ] Autodetect language for comments/description if possible
 
 # Similar projects
 
