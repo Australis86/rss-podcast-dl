@@ -206,6 +206,7 @@ class PodcastDownloader:
             return
 
         entries = feed.entries
+        print(f"{len(entries)} new episode(s) available.")
 
         podcast_dir = f"{self.output_dir}/{feed.feed.get("title", "")}"
         os.makedirs(podcast_dir, exist_ok=True)
