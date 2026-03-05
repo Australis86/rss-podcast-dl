@@ -19,7 +19,7 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 from email.utils import parsedate_to_datetime
 from tqdm import tqdm
-from mutagen.id3 import ID3, APIC, COMM, TIT2, TPE1, TALB, TDRC, WOAS, ID3NoHeaderError
+from mutagen.id3 import ID3, APIC, COMM, TIT2, TPE1, TALB, TDRL, TDRC, WOAS, ID3NoHeaderError
 
 
 class CachedRSSFeed:
@@ -103,7 +103,20 @@ class PodcastDownloader:
         tags.add(TIT2(encoding=3, text=metadata.get("title", "")))
         tags.add(TPE1(encoding=3, text=metadata.get("author", "")))
         tags.add(TALB(encoding=3, text=metadata.get("album", "")))
-        tags.add(TDRC(encoding=3, text=metadata.get("date", "")))
+        tags.add(TDRL(encoding=3, text=metadata.get("date", ""))) # TDRL is release date
+ 
+        # TDRC is recording date and sometimes confused with TYER (which should not be used for an ISO standard date)
+        # Easier to remove both tags if present to ensure OwnTone and similar platforms use the correct field for podcast dates
+        try:
+            tags.pop('TDRC')
+        except:
+            # Recording date tag not found
+            pass
+        try:
+            tags.pop('TYER')
+        except:
+            # Year tag not found
+            pass
 
         if "description" in metadata:
             tags.add(
