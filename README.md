@@ -64,7 +64,7 @@ The inspiration to use `uv` is thanks to this blog post : [Fun with uv and PEP 7
 # Usage
 
 ```shell
-usage: acast_dl.py [-h] (--rss-url RSS_URL | --update) [--output-dir OUTPUT_DIR] [--user-agent USER_AGENT] [-n MAX_DOWNLOAD] [-4]
+usage: acast_dl.py [-h] (--rss-url RSS_URL | --update) [-d OUTPUT_DIR] [-u USER_AGENT] [-n MAX_DOWNLOAD] [-o] [-4]
 
 Download podcast episodes from an Acast RSS feed (or any other podcast platform that provides a compatible RSS feed) and embed metadata into MP3 files.
 
@@ -72,12 +72,13 @@ options:
   -h, --help            show this help message and exit
   --rss-url RSS_URL     Podcast RSS feed URL
   --update              Update podcasts from rss_cache.json
-  --output-dir OUTPUT_DIR
+  -d, --output-dir OUTPUT_DIR
                         Directory where MP3 files will be saved (default: podcasts)
-  --user-agent USER_AGENT
+  -u, --user-agent USER_AGENT
                         Set a custom User-Agent header (default: Wget/1.25.0)
   -n, --max-download MAX_DOWNLOAD
                         Only download the N most recent podcast episodes
+  -o, --overwrite       Overwrite an existing episode if it already exists
   -4, --id3v24          Write ID3v2.4 tags instead of ID3v2.3 (default)
 ```
 
@@ -86,7 +87,7 @@ ID3v2.3 has been selected as the default due to its wider support across MP3 pla
 # TODO Wishlist
 
 - [ ] add arguments
-  - [ ] `--overwrite` : overwrite an existing podcast file
+  - [X] `--overwrite` : overwrite an existing podcast file
   - [ ] `--ignore-rss-cache` : ignore [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag) and [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) headers
   - [X] `--max-download` : download only the latest / most recent X podcast episodes
   - [ ] `--cover-as-jpeg` : convert all cover images to JPEG

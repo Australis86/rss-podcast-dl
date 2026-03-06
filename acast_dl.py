@@ -85,11 +85,12 @@ class CachedRSSFeed:
 
 
 class PodcastDownloader:
-    def __init__(self, rss_url, user_agent, output_dir="podcasts", episode_cnt=None, id3v24=False):
+    def __init__(self, rss_url, user_agent, output_dir="podcasts", episode_cnt=None, overwrite=False, id3v24=False):
         self.rss_url = rss_url
         self.output_dir = output_dir
         self.user_agent = user_agent
         self.episode_cnt = episode_cnt
+        self.overwrite = overwrite
         if id3v24:
             self.id3version2=4
         else:
@@ -110,15 +111,15 @@ class PodcastDownloader:
         tags.add(TIT2(encoding=3, text=metadata.get("title", "")))
 
         # Set the album artist field (TPE2) rather than artist field (TPE1),
-        # as this is more appropriate for podcast authors/RSS feed authors 
+        # as this is more appropriate for podcast authors/RSS feed authors
         tags.add(TPE2(encoding=3, text=metadata.get("author", "")))
         tags.add(TALB(encoding=3, text=metadata.get("album", "")))
-        
+
         # Set the release date field (TDRL) rather than recording date (TDRC) or year (TYER)
         # since the RSS feed provides the episode publication date
-        tags.add(TDRL(encoding=3, text=metadata.get("date", ""))) 
- 
-        # It is easier to remove both TDRC and TYER tags if present to ensure OwnTone and similar applications 
+        tags.add(TDRL(encoding=3, text=metadata.get("date", "")))
+
+        # It is easier to remove both TDRC and TYER tags if present to ensure OwnTone and similar applications
         # use the correct date field for the podcast episode publication/release date
         try:
             tags.pop('TDRC')
@@ -219,7 +220,7 @@ class PodcastDownloader:
             return
 
         entries = feed.entries
-        
+
         # Check if number of new episodes exceeds limit
         available = len(entries)
         if self.episode_cnt is not None and available > self.episode_cnt:
@@ -235,7 +236,7 @@ class PodcastDownloader:
         for i, entry in enumerate(entries):
             cntr=i+1
             print(f"{cntr}/{cntr_limit}\t{entry.title}")
-            
+
             published = entry.get("published", "")
             try:
                 datetime = parsedate_to_datetime(published)
@@ -269,13 +270,21 @@ class PodcastDownloader:
                 print(f"Skipping '{metadata.get("link")}' (no MP3 link found)")
                 continue
 
-            if not os.path.exists(file_path):
+            write_episode = False
+            if os.path.exists(file_path):
+                if self.overwrite:
+                    print(f"Overwriting existing file: {file_path}")
+                    write_episode = True
+                else:
+                    print(f"File already exists: {file_path}")
+            else:
+                write_episode = True
+                
+            if write_episode:
                 if self.download_file(audio_url, file_path):
                     self.set_metadata(file_path, metadata, image_url=image_url)
                 else:
                     print(f"Skipping metadata for '{metadata.get("title", "")}' due to download failure.")
-            else:
-                print(f"Already exists: {file_path}")
 
             # Check break condition
             if self.episode_cnt is not None and cntr == self.episode_cnt:
@@ -293,19 +302,21 @@ if __name__ == "__main__":
     group.add_argument("--update", action="store_true", help="Update podcasts from rss_cache.json")
 
     parser.add_argument(
-        "--output-dir",
+        "-d","--output-dir",
         default="podcasts",
-        help="Directory where MP3 files will be saved (default: podcasts)",
-    )
+        help="Directory where MP3 files will be saved (default: podcasts)")
     parser.add_argument(
-        "--user-agent",
+        "-u","--user-agent",
         default="Wget/1.25.0",
-        help="Set a custom User-Agent header (default: Wget/1.25.0)",
-    )
+        help="Set a custom User-Agent header (default: Wget/1.25.0)")
     parser.add_argument(
         "-n","--max-download",
         type=int,
         help="Only download the N most recent podcast episodes")
+    parser.add_argument(
+        "-o", "--overwrite",
+        action="store_true",
+        help="Overwrite an existing episode if it already exists")
     parser.add_argument(
         "-4", "--id3v24",
         action="store_true",
@@ -325,11 +336,12 @@ if __name__ == "__main__":
                 user_agent=args.user_agent,
                 output_dir=args.output_dir,
                 episode_cnt=args.max_download,
+                overwrite=args.overwrite,
                 id3v24=args.id3v24
             )
             downloader.download()
     else:
         downloader = PodcastDownloader(
-            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, episode_cnt=args.max_download, id3v24=args.id3v24
+            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, episode_cnt=args.max_download, overwrite=args.overwrite, id3v24=args.id3v24
         )
         downloader.download()
