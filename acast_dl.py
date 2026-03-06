@@ -19,7 +19,7 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 from email.utils import parsedate_to_datetime
 from tqdm import tqdm
-from mutagen.id3 import ID3, APIC, COMM, TIT2, TPE1, TALB, TDRL, TDRC, WOAS, ID3NoHeaderError
+from mutagen.id3 import ID3, APIC, COMM, TIT2, TPE2, TALB, TDRL, WOAS, ID3NoHeaderError
 
 
 class CachedRSSFeed:
@@ -108,12 +108,18 @@ class PodcastDownloader:
 
         # See https://mutagen.readthedocs.io/en/latest/api/id3_frames.html#id3v2-3-4-frames
         tags.add(TIT2(encoding=3, text=metadata.get("title", "")))
-        tags.add(TPE1(encoding=3, text=metadata.get("author", "")))
+
+        # Set the album artist field (TPE2) rather than artist field (TPE1),
+        # as this is more appropriate for podcast authors/RSS feed authors 
+        tags.add(TPE2(encoding=3, text=metadata.get("author", "")))
         tags.add(TALB(encoding=3, text=metadata.get("album", "")))
-        tags.add(TDRL(encoding=3, text=metadata.get("date", ""))) # TDRL is release date
+        
+        # Set the release date field (TDRL) rather than recording date (TDRC) or year (TYER)
+        # since the RSS feed provides the episode publication date
+        tags.add(TDRL(encoding=3, text=metadata.get("date", ""))) 
  
-        # TDRC is recording date and sometimes confused with TYER (which should not be used for an ISO standard date)
-        # Easier to remove both tags if present to ensure OwnTone and similar platforms use the correct field for podcast dates
+        # It is easier to remove both TDRC and TYER tags if present to ensure OwnTone and similar applications 
+        # use the correct date field for the podcast episode publication/release date
         try:
             tags.pop('TDRC')
         except:
