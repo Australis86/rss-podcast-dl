@@ -51,6 +51,8 @@ class CachedRSSFeed:
         saved_etag = self.feeds.get(url, {}).get("etag")
         saved_modified = self.feeds.get(url, {}).get("last-modified")
 
+        # This retrieves the RSS feed and should return the feed entries in their original order
+        # (as per https://feedparser.readthedocs.io/en/latest/common-rss-elements/), e.g. newest to oldest
         feed = feedparser.parse(url, etag=saved_etag, modified=saved_modified, agent=user_agent)
 
         if not self.feeds.get(url):
@@ -83,10 +85,11 @@ class CachedRSSFeed:
 
 
 class PodcastDownloader:
-    def __init__(self, rss_url, user_agent, output_dir="podcasts", id3v24=False):
+    def __init__(self, rss_url, user_agent, output_dir="podcasts", episode_cnt=None, id3v24=False):
         self.rss_url = rss_url
         self.output_dir = output_dir
         self.user_agent = user_agent
+        self.episode_cnt = episode_cnt
         if id3v24:
             self.id3version2=4
         else:
@@ -210,12 +213,23 @@ class PodcastDownloader:
             return
 
         entries = feed.entries
-        print(f"{len(entries)} new episode(s) available.")
+        
+        # Check if number of new episodes exceeds limit
+        available = len(entries)
+        if self.episode_cnt is not None and available > self.episode_cnt:
+            print(f"{available} new episodes available; only downloading first {self.episode_cnt} episode(s).")
+            cntr_limit = self.episode_cnt
+        else:
+            print(f"{available} new episode(s) available.")
+            cntr_limit = available
 
         podcast_dir = f"{self.output_dir}/{feed.feed.get("title", "")}"
         os.makedirs(podcast_dir, exist_ok=True)
 
-        for entry in entries:
+        for i, entry in enumerate(entries):
+            cntr=i+1
+            print(f"{cntr}/{cntr_limit}\t{entry.title}")
+            
             published = entry.get("published", "")
             try:
                 datetime = parsedate_to_datetime(published)
@@ -257,6 +271,10 @@ class PodcastDownloader:
             else:
                 print(f"Already exists: {file_path}")
 
+            # Check break condition
+            if self.episode_cnt is not None and cntr == self.episode_cnt:
+                break
+
         rss.save_cache()
 
 
@@ -276,9 +294,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--user-agent",
         default="Wget/1.25.0",
-        help="Custom User-Agent header (default: Wget/1.25.0)",
+        help="Set a custom User-Agent header (default: Wget/1.25.0)",
     )
-
+    parser.add_argument(
+        "-n","--max-download",
+        type=int,
+        help="Only download the N most recent podcast episodes")
     parser.add_argument(
         "-4", "--id3v24",
         action="store_true",
@@ -297,11 +318,12 @@ if __name__ == "__main__":
                 rss_url=feed_url,
                 user_agent=args.user_agent,
                 output_dir=args.output_dir,
+                episode_cnt=args.max_download,
                 id3v24=args.id3v24
             )
             downloader.download()
     else:
         downloader = PodcastDownloader(
-            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, id3v24=args.id3v24
+            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, episode_cnt=args.max_download, id3v24=args.id3v24
         )
         downloader.download()

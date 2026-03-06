@@ -12,7 +12,7 @@ This script:
 - only supports podcasts that use `.mp3` files
 - only supports ID3v2.3 and ID3v2.4 tags
 
-## AI usage
+## AI Usage
 
 Please note that parts of this script were originally written using [OpenAI](https://openai.com/) [ChatGPT](https://chatgpt.com/) (GPT-4o + GPT-5) as a teammate.
 
@@ -64,7 +64,7 @@ The inspiration to use `uv` is thanks to this blog post : [Fun with uv and PEP 7
 # Usage
 
 ```shell
-usage: acast_dl.py [-h] (--rss-url RSS_URL | --update) [--output-dir OUTPUT_DIR] [--user-agent USER_AGENT] [-4]
+usage: acast_dl.py [-h] (--rss-url RSS_URL | --update) [--output-dir OUTPUT_DIR] [--user-agent USER_AGENT] [-n MAX_DOWNLOAD] [-4]
 
 Download podcast episodes from an Acast RSS feed (or any other podcast platform that provides a compatible RSS feed) and embed metadata into MP3 files.
 
@@ -75,25 +75,25 @@ options:
   --output-dir OUTPUT_DIR
                         Directory where MP3 files will be saved (default: podcasts)
   --user-agent USER_AGENT
-                        Custom User-Agent header (default: Wget/1.25.0)
+                        Set a custom User-Agent header (default: Wget/1.25.0)
+  -n, --max-download MAX_DOWNLOAD
+                        Only download the N most recent podcast episodes
   -4, --id3v24          Write ID3v2.4 tags instead of ID3v2.3 (default)
 ```
 
 ID3v2.3 has been selected as the default due to its wider support across MP3 playback devices and applications.
 
-# TODO
+# TODO Wishlist
 
-- [X] Update this `README.md` file
-  - [X] "Usage" chapter
 - [ ] add arguments
-  - [ ] `--overwrite` : overwrite any already downloaded podcast file
+  - [ ] `--overwrite` : overwrite an existing podcast file
   - [ ] `--ignore-rss-cache` : ignore [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag) and [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) headers
-  - [ ] `--max-download` : download only the latest / most recent X podcast episodes
+  - [X] `--max-download` : download only the latest / most recent X podcast episodes
   - [ ] `--cover-as-jpeg` : convert all cover images to JPEG
   - [ ] `--prefix` : prefix MP3 filenames with ??? (pubDate as `YYYY-MM-DD` ? season/episode as `SxEy` (if available) ?)
 - [ ] Autodetect language for comments/description if possible
 
-# Similar projects
+# Similar Projects
 
 Here's a non-exhaustive list, in non-specific order, of similar projects to `acast_dl`, with the programming language noted:
 
