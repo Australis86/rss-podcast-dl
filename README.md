@@ -64,7 +64,7 @@ The inspiration to use `uv` is thanks to this blog post : [Fun with uv and PEP 7
 # Usage
 
 ```shell
-usage: acast_dl.py [-h] (--rss-url RSS_URL | --update) [-d OUTPUT_DIR] [-u USER_AGENT] [-n MAX_DOWNLOAD] [-o] [-4]
+usage: acast_dl.py [-h] (--rss-url RSS_URL | --update) [-d OUTPUT_DIR] [-u USER_AGENT] [-n MAX_DOWNLOAD] [-c] [-o] [-p {date,episode}] [-4]
 
 Download podcast episodes from an Acast RSS feed (or any other podcast platform that provides a compatible RSS feed) and embed metadata into MP3 files.
 
@@ -80,19 +80,23 @@ options:
                         Only download the N most recent podcast episodes
   -c, --ignore-rss-cache
                         Ignore the ETag and Last-Modified headers (treats feed as new)
-  -o, --overwrite       Overwrite an existing episode if it already exists
+  -o, --overwrite       Overwrite an existing episode if a file of the same name already exists
+  -p, --prefix {date,episode}
+                        Prefix the episode filename with the ISO date (YYYY-MM-DD) or season+episode number (SxEy); if 'episode' is specified but the field is not available, then the date will be used
   -4, --id3v24          Write ID3v2.4 tags instead of ID3v2.3 (default)
 ```
 
 ID3v2.3 has been selected as the default due to its wider support across MP3 playback devices and applications.
 
+The script uses a local JSON file to track the [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag) and [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) headers for each RSS feed. This enables the user to update the local copy of the podcast and fetch only the latest episodes.
+
+The `prefix=episode` option uses the `itunes:season` and `itunes:episode` fields if present; if not, it will use the publication date instead (same behaviour as `prefix=date`).
+
 # TODO Wishlist
 
 - [ ] add arguments
-  - [X] `--overwrite` : overwrite an existing podcast file
-  - [X] `--ignore-rss-cache` : ignore [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag) and [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) headers
   - [ ] `--cover-as-jpeg` : convert all cover images to JPEG
-  - [ ] `--prefix` : prefix MP3 filenames with ??? (pubDate as `YYYY-MM-DD` ? season/episode as `SxEy` (if available) ?)
+  - [X] `--prefix` : prefix MP3 filenames with (pubDate as `YYYY-MM-DD` or season/episode as `SxEy` if available)
 - [ ] Autodetect language for comments/description if possible
 
 # Similar Projects

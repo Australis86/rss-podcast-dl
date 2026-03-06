@@ -90,13 +90,14 @@ class CachedRSSFeed:
 
 
 class PodcastDownloader:
-    def __init__(self, rss_url, user_agent, output_dir="podcasts", episode_cnt=None, ignore_cache=False, overwrite=False, id3v24=False):
+    def __init__(self, rss_url, user_agent, output_dir="podcasts", episode_cnt=None, ignore_cache=False, overwrite=False, prefix=None, id3v24=False):
         self.rss_url = rss_url
         self.output_dir = output_dir
         self.user_agent = user_agent
         self.episode_cnt = episode_cnt
         self.ignore_cache = ignore_cache
         self.overwrite = overwrite
+        self.prefix = prefix
         if id3v24:
             self.id3version2=4
         else:
@@ -238,7 +239,7 @@ class PodcastDownloader:
 
         print()
 
-        podcast_dir = f"{self.output_dir}/{feed.feed.get("title", "")}"
+        podcast_dir = f"{self.output_dir}/{self.sanitize_filename(feed.feed.get("title", ""))}"
         os.makedirs(podcast_dir, exist_ok=True)
 
         for i, entry in enumerate(entries):
@@ -248,22 +249,40 @@ class PodcastDownloader:
             published = entry.get("published", "")
             try:
                 datetime = parsedate_to_datetime(published)
-                date = datetime.strftime("%F")
+                # mutagen ID3TimeStamp object is a restricted ISO 8601 timestamp
+                # can be full timestamp, date or just year
+                date_str = datetime.strftime("%Y-%m-%d ")
+                datetime_str = datetime.strftime("%Y-%m-%d %H:%M:%S")
             except Exception:
-                date = "unknown"
+                date_str = ""
+                datetime_str = "unknown"
             metadata = {
                 "title": entry.title,
                 "author": entry.get("author", feed.feed.get("author", "")),
                 "album": feed.feed.get("title", ""),
-                "date": date,
+                "date": datetime_str,
                 "description": entry.get("description", ""),
                 "link": entry.link,
             }
+            
+            # Check if season/episode metadata available
+            # Fallback to ISO date as string if not
+            if self.prefix == 'episode':
+                try:
+                    season = entry.itunes_season
+                    episode = entry.itunes_episode
+                    prefix = f"S{season}E{episode} "
+                except Exception:
+                    prefix = date_str
+            elif self.prefix == 'date':
+                prefix = date_str
+            else:
+                prefix = ''
 
             image_url = entry.get("image", {}).get("href", None)
             audio_url = self.get_audio_url(entry)
 
-            filename = f"{self.sanitize_filename(metadata.get("title", ""))}.mp3"
+            filename = f"{self.sanitize_filename(prefix)}{self.sanitize_filename(metadata.get("title", ""))}.mp3"
             if filename == ".mp3":
                 guid = entry.get("guid", None)
                 if guid is not None:
@@ -328,7 +347,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o", "--overwrite",
         action="store_true",
-        help="Overwrite an existing episode if it already exists")
+        help="Overwrite an existing episode if a file of the same name already exists")
+    parser.add_argument(
+        "-p", "--prefix",
+        choices=['date','episode'],
+        help="Prefix the episode filename with the ISO date (YYYY-MM-DD) or season+episode number (SxEy); if 'episode' is specified but the field is not available, then the date will be used")
     parser.add_argument(
         "-4", "--id3v24",
         action="store_true",
@@ -350,11 +373,12 @@ if __name__ == "__main__":
                 episode_cnt=args.max_download,
                 ignore_cache=args.ignore_rss_cache,
                 overwrite=args.overwrite,
+                prefix=args.prefix,
                 id3v24=args.id3v24
             )
             downloader.download()
     else:
         downloader = PodcastDownloader(
-            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, episode_cnt=args.max_download, ignore_cache=args.ignore_rss_cache, overwrite=args.overwrite, id3v24=args.id3v24
+            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, episode_cnt=args.max_download, ignore_cache=args.ignore_rss_cache, overwrite=args.overwrite, prefix=args.prefix,id3v24=args.id3v24
         )
         downloader.download()
