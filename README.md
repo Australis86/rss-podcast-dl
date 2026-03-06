@@ -2,7 +2,7 @@
 
 The purpose of this script is to easily download podcast episodes from [Acast](https://www.acast.com/) for offline listening.
 
-It also works for other podcast platforms as long as you can get a RSS feed URL (e.g. [Ausha](https://www.ausha.co/), [Radio France](https://www.radiofrance.fr/podcasts), etc.).
+It also works for other podcast platforms as long as you can get a RSS feed URL (e.g. [Ausha](https://www.ausha.co/), [Radio France](https://www.radiofrance.fr/podcasts), [Megaphone](https://megaphone.spotify.com/), etc.).
 
 ## Limitations
 
@@ -11,15 +11,13 @@ It also works for other podcast platforms as long as you can get a RSS feed URL 
 
 ## AI usage
 
-Please note that parts of this script has been written using [OpenAI](https://openai.com/) [ChatGPT](https://chatgpt.com/) (GPT-4o + GPT-5) as a teammate.
+Please note that parts of this script were originally written using [OpenAI](https://openai.com/) [ChatGPT](https://chatgpt.com/) (GPT-4o + GPT-5) as a teammate.
 
-This project is an excuse to see how good AI is at helping to write small tools (I always have lots of ideas but don't have time to implement them).
+This project was initially an excuse to see how good AI was (in 2025) at helping to write small tools.
 
 # Dependencies
 
-I have tried to keep the number of depencies as low as possible.
-
-Currently `acast_dl` relies on four:
+The number of dependencies has been minimised where possible. Currently `acast_dl` relies on four:
 
 - [`feedparser`](https://github.com/kurtmckee/feedparser) for retrieving and parsing the RSS XML feed
 - [`mutagen`](https://github.com/quodlibet/mutagen) for updating ID3 MP3 tags
@@ -58,7 +56,7 @@ Installed 5 packages in 32ms
  ~ tqdm==4.67.1
 ```
 
-I got the inspiration to use `uv` thanks to this blog post : [Fun with uv and PEP 723](https://www.cottongeeks.com/articles/2025-06-24-fun-with-uv-and-pep-723) (related [hn post](https://news.ycombinator.com/item?id=44369388)).
+The inspiration to use `uv` is thanks to this blog post : [Fun with uv and PEP 723](https://www.cottongeeks.com/articles/2025-06-24-fun-with-uv-and-pep-723) (related [hn post](https://news.ycombinator.com/item?id=44369388)).
 
 # Usage
 
@@ -80,15 +78,14 @@ TODO
 
 # Similar projects
 
-Here's a non-exhaustive list, in non-specific order, of similar projects to `acast_dl` :
+Here's a non-exhaustive list, in non-specific order, of similar projects to `acast_dl`, with the programming language noted:
 
-- [acast-rss-downloader](https://github.com/duskmoon314/acast-rss-downloader)
-- [gocast](https://github.com/philippdrebes/gocast)
+- [acast-rss-downloader](https://github.com/duskmoon314/acast-rss-downloader) (Rust)
+- [gocast](https://github.com/philippdrebes/gocast) (Go)
 
 # Legal Notice
 
-This project is an independent tool and is **not affiliated with, endorsed by, or connected to Acast** in any way.
-Acast is a registered trademark of its respective owner. All other trademarks and service marks are the property of their respective owners.
+This project is an independent tool and is **not affiliated with, endorsed by, or connected to Acast** in any way. Acast is a registered trademark of its respective owner. All other trademarks and service marks are the property of their respective owners.
 
 All podcasts, audio files, images, descriptions, and related metadata retrieved using this tool remain the sole property of their respective creators and copyright holders. This tool is intended for personal, non-commercial use only.
 
