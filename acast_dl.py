@@ -83,10 +83,14 @@ class CachedRSSFeed:
 
 
 class PodcastDownloader:
-    def __init__(self, rss_url, user_agent, output_dir="podcasts"):
+    def __init__(self, rss_url, user_agent, output_dir="podcasts", id3v24=False):
         self.rss_url = rss_url
         self.output_dir = output_dir
         self.user_agent = user_agent
+        if id3v24:
+            self.id3version2=4
+        else:
+            self.id3version2=3
 
     def sanitize_filename(self, name):
         return re.sub(r'[\\/*?:"<>|]', "", name)
@@ -95,7 +99,7 @@ class PodcastDownloader:
         print(f"Tagging: {mp3_path}")
 
         try:
-            tags = ID3(mp3_path)
+            tags = ID3(mp3_path, v2_version=self.id3version2)
         except ID3NoHeaderError:
             tags = ID3()
 
@@ -149,7 +153,7 @@ class PodcastDownloader:
             except Exception as e:
                 print(f"Failed to download or embed image: {e}")
 
-        tags.save(mp3_path)
+        tags.save(mp3_path, v2_version=self.id3version2)
 
     def get_audio_url(self, entry):
         for link in entry.links:
@@ -258,7 +262,7 @@ class PodcastDownloader:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Download podcast episodes from an Acast RSS feed (or any other podcast platform) and embed metadata into MP3 files."
+        description="Download podcast episodes from an Acast RSS feed (or any other podcast platform that provides a compatible RSS feed) and embed metadata into MP3 files."
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--rss-url", help="Podcast RSS feed URL")
@@ -275,6 +279,11 @@ if __name__ == "__main__":
         help="Custom User-Agent header (default: Wget/1.25.0)",
     )
 
+    parser.add_argument(
+        "-4", "--id3v24",
+        action="store_true",
+        help="Write ID3v2.4 tags instead of ID3v2.3 (default)")
+
     args = parser.parse_args()
 
     if args.update:
@@ -288,10 +297,11 @@ if __name__ == "__main__":
                 rss_url=feed_url,
                 user_agent=args.user_agent,
                 output_dir=args.output_dir,
+                id3v24=args.id3v24
             )
             downloader.download()
     else:
         downloader = PodcastDownloader(
-            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir
+            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, id3v24=args.id3v24
         )
         downloader.download()

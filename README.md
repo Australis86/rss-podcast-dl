@@ -2,12 +2,15 @@
 
 The purpose of this script is to easily download podcast episodes from [Acast](https://www.acast.com/) for offline listening.
 
-It also works for other podcast platforms as long as you can get a RSS feed URL (e.g. [Ausha](https://www.ausha.co/), [Radio France](https://www.radiofrance.fr/podcasts), [Megaphone](https://megaphone.spotify.com/), etc.).
+It also works for other podcast platforms as long as you can get a RSS feed URL (e.g. [Ausha](https://www.ausha.co/), [Radio France](https://www.radiofrance.fr/podcasts), [Megaphone](https://megaphone.spotify.com/), [Simplecast](https://www.simplecast.com/), etc.).
 
 ## Limitations
 
-- this script is currently a wip and has been tested with only a very little set of podcast feeds
-- this script only support `.mp3` files
+This script: 
+
+- is a wip and has been tested with only a very little set of podcast feeds
+- only supports podcasts that use `.mp3` files
+- only supports ID3v2.3 and ID3v2.4 tags
 
 ## AI usage
 
@@ -30,7 +33,7 @@ You can either install them with your favorite package manager or install [`uv`]
 python3 ./acast_dl.py
 ```
 
-It makes use of [PEP-723](https://peps.python.org/pep-0723/) that allows to add metadata :
+It makes use of [PEP-723](https://peps.python.org/pep-0723/) that allows to add metadata:
 
 ```python
 #!/usr/bin/env -S uv run --script
@@ -45,7 +48,7 @@ It makes use of [PEP-723](https://peps.python.org/pep-0723/) that allows to add 
 # ///
 ```
 
-When launched the first time you'll see `uv` downloading and installing the dependencies :
+When launched the first time you'll see `uv` downloading and installing the dependencies:
 
 ```
 Installed 5 packages in 32ms
@@ -61,13 +64,27 @@ The inspiration to use `uv` is thanks to this blog post : [Fun with uv and PEP 7
 # Usage
 
 ```shell
-TODO
+usage: acast_dl.py [-h] (--rss-url RSS_URL | --update) [--output-dir OUTPUT_DIR] [--user-agent USER_AGENT] [-4]
+
+Download podcast episodes from an Acast RSS feed (or any other podcast platform that provides a compatible RSS feed) and embed metadata into MP3 files.
+
+options:
+  -h, --help            show this help message and exit
+  --rss-url RSS_URL     Podcast RSS feed URL
+  --update              Update podcasts from rss_cache.json
+  --output-dir OUTPUT_DIR
+                        Directory where MP3 files will be saved (default: podcasts)
+  --user-agent USER_AGENT
+                        Custom User-Agent header (default: Wget/1.25.0)
+  -4, --id3v24          Write ID3v2.4 tags instead of ID3v2.3 (default)
 ```
+
+ID3v2.3 has been selected as the default due to its wider support across MP3 playback devices and applications.
 
 # TODO
 
-- [ ] Update this `README.md` file
-  - [ ] "Usage" chapter
+- [X] Update this `README.md` file
+  - [X] "Usage" chapter
 - [ ] add arguments
   - [ ] `--overwrite` : overwrite any already downloaded podcast file
   - [ ] `--ignore-rss-cache` : ignore [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag) and [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) headers
