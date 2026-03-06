@@ -47,9 +47,14 @@ class CachedRSSFeed:
     def is_empty(self):
         return len(self.feeds) == 0
 
-    def fetch(self, url, user_agent):
-        saved_etag = self.feeds.get(url, {}).get("etag")
-        saved_modified = self.feeds.get(url, {}).get("last-modified")
+    def fetch(self, url, user_agent, ignore_cache=False):
+        if ignore_cache:
+            print("Warning: ignoring RSS cache - treating feed as new")
+            saved_etag = None
+            saved_modified = None
+        else:
+            saved_etag = self.feeds.get(url, {}).get("etag")
+            saved_modified = self.feeds.get(url, {}).get("last-modified")
 
         # This retrieves the RSS feed and should return the feed entries in their original order
         # (as per https://feedparser.readthedocs.io/en/latest/common-rss-elements/), e.g. newest to oldest
@@ -72,7 +77,7 @@ class CachedRSSFeed:
                         if saved_timestamp >= current_timestamp:
                             print("Feed not modified (same Last-Modified)")
                             return None
-                else:
+                elif not ignore_cache:
                     print("Warning: no ETag and no Last-Modified")
                 print("New episode(s) available!")
 
@@ -85,11 +90,12 @@ class CachedRSSFeed:
 
 
 class PodcastDownloader:
-    def __init__(self, rss_url, user_agent, output_dir="podcasts", episode_cnt=None, overwrite=False, id3v24=False):
+    def __init__(self, rss_url, user_agent, output_dir="podcasts", episode_cnt=None, ignore_cache=False, overwrite=False, id3v24=False):
         self.rss_url = rss_url
         self.output_dir = output_dir
         self.user_agent = user_agent
         self.episode_cnt = episode_cnt
+        self.ignore_cache = ignore_cache
         self.overwrite = overwrite
         if id3v24:
             self.id3version2=4
@@ -213,7 +219,7 @@ class PodcastDownloader:
 
     def download(self):
         rss = CachedRSSFeed()
-        feed = rss.fetch(self.rss_url, self.user_agent)
+        feed = rss.fetch(self.rss_url, self.user_agent, self.ignore_cache)
 
         if feed is None:
             print("No new episodes.")
@@ -229,6 +235,8 @@ class PodcastDownloader:
         else:
             print(f"{available} new episode(s) available.")
             cntr_limit = available
+
+        print()
 
         podcast_dir = f"{self.output_dir}/{feed.feed.get("title", "")}"
         os.makedirs(podcast_dir, exist_ok=True)
@@ -279,7 +287,7 @@ class PodcastDownloader:
                     print(f"File already exists: {file_path}")
             else:
                 write_episode = True
-                
+
             if write_episode:
                 if self.download_file(audio_url, file_path):
                     self.set_metadata(file_path, metadata, image_url=image_url)
@@ -314,6 +322,10 @@ if __name__ == "__main__":
         type=int,
         help="Only download the N most recent podcast episodes")
     parser.add_argument(
+        "-c", "--ignore-rss-cache",
+        action="store_true",
+        help="Ignore the ETag and Last-Modified headers (treats feed as new)")
+    parser.add_argument(
         "-o", "--overwrite",
         action="store_true",
         help="Overwrite an existing episode if it already exists")
@@ -336,12 +348,13 @@ if __name__ == "__main__":
                 user_agent=args.user_agent,
                 output_dir=args.output_dir,
                 episode_cnt=args.max_download,
+                ignore_cache=args.ignore_rss_cache,
                 overwrite=args.overwrite,
                 id3v24=args.id3v24
             )
             downloader.download()
     else:
         downloader = PodcastDownloader(
-            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, episode_cnt=args.max_download, overwrite=args.overwrite, id3v24=args.id3v24
+            rss_url=args.rss_url, user_agent=args.user_agent, output_dir=args.output_dir, episode_cnt=args.max_download, ignore_cache=args.ignore_rss_cache, overwrite=args.overwrite, id3v24=args.id3v24
         )
         downloader.download()
