@@ -98,7 +98,11 @@ options:
 
 ID3v2.3 has been selected as the default due to its wider support across MP3 playback devices and applications.
 
-The script uses a local JSON file to track the [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag) and [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) headers for each RSS feed. This enables the user to update the local copy of the podcast and fetch only the latest episodes.
+The script uses a local JSON file to cache key information about each podcast feed to allow the user to easily update feeds:
+
+- the [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag) and [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) headers (where available) to allow for only downloading new episodes 
+- the podcast title (if the user needs to edit the cache file manually, this makes it easier to identify the relevant podcast)
+- the download directory and prefix settings; these are stored when a feed is first added to the cache so that the user doesn't need to specify them again when updating feeds
 
 The `prefix=episode` option uses the `itunes:season` and `itunes:episode` fields if present; if not, it will use the publication date instead (same behaviour as `prefix=date`).
 
@@ -106,6 +110,7 @@ The `prefix=episode` option uses the `itunes:season` and `itunes:episode` fields
 
 - [ ] add arguments
   - [ ] `--cover-as-jpeg` : convert all cover images to JPEG
+- [ ] Add the ID3 version setting to the cache
 - [ ] Autodetect language for comments/description if possible
 
 # Similar Projects
@@ -117,7 +122,7 @@ Here's a non-exhaustive list, in non-specific order, of similar projects to `aca
 
 # Legal Notice
 
-This project is an independent tool and is **not affiliated with, endorsed by, or connected to Acast** in any way. Acast is a registered trademark of its respective owner. All other trademarks and service marks are the property of their respective owners.
+This project is an independent tool and is not affiliated with, endorsed by, or connected to any podcast provider in any way. All trademarks and service marks are the property of their respective owners.
 
 All podcasts, audio files, images, descriptions, and related metadata retrieved using this tool remain the sole property of their respective creators and copyright holders. This tool is intended for personal, non-commercial use only.
 
