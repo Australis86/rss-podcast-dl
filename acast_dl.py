@@ -47,7 +47,7 @@ class CachedRSSFeed:
     def is_empty(self):
         return len(self.feeds) == 0
 
-    def fetch(self, url, user_agent, ignore_cache=False):
+    def fetch(self, url, user_agent, ignore_cache=False, storage_path=None, file_prefix=None):
         if ignore_cache:
             print("Warning: ignoring RSS cache - treating feed as new")
             saved_etag = None
@@ -55,13 +55,21 @@ class CachedRSSFeed:
         else:
             saved_etag = self.feeds.get(url, {}).get("etag")
             saved_modified = self.feeds.get(url, {}).get("last-modified")
+            saved_path = self.feeds.get(url, {}).get("storage_path")
+            saved_prefix = self.feeds.get(url, {}).get("file_prefix")
 
         # This retrieves the RSS feed and should return the feed entries in their original order
         # (as per https://feedparser.readthedocs.io/en/latest/common-rss-elements/), e.g. newest to oldest
         feed = feedparser.parse(url, etag=saved_etag, modified=saved_modified, agent=user_agent)
-
+   
         if not self.feeds.get(url):
-            print("New feed!")
+            feed_title = feed.feed.get("title", "")
+            print(f"New feed: {feed_title} ")
+            self.feeds[url] = {
+                "title": feed_title, # Store the title so it is easy to identify each entry in the JSON cache if manual editing is required
+                "storage_path": storage_path,
+                "file_prefix": file_prefix,
+            }
         else:
             if feed.get("status") == 304:
                 print("Feed not modified (same ETag)")
@@ -78,15 +86,16 @@ class CachedRSSFeed:
                             print("Feed not modified (same Last-Modified)")
                             return None
                 elif not ignore_cache:
-                    print("Warning: no ETag and no Last-Modified")
+                    print("Warning: no ETag and no Last-Modified found in feed -- updating from cache will not work!")
                 print("New episode(s) available!")
 
-        self.feeds[url] = {
+        self.feeds[url].update({
             "etag": feed.get("etag", ""),
             "last-modified": feed.get("modified", ""),
-        }
+            "updated": feed.get("feed", {}).get("updated", ""),
+        })
 
-        return feed
+        return (feed, saved_path, saved_prefix)
 
 
 class PodcastDownloader:
@@ -220,7 +229,7 @@ class PodcastDownloader:
 
     def download(self):
         rss = CachedRSSFeed()
-        feed = rss.fetch(self.rss_url, self.user_agent, self.ignore_cache)
+        (feed, storage_path, file_prefix) = rss.fetch(self.rss_url, self.user_agent, self.ignore_cache, self.output_dir, self.prefix)
 
         if feed is None:
             print("No new episodes.")
@@ -239,8 +248,10 @@ class PodcastDownloader:
 
         print()
 
-        podcast_dir = f"{self.output_dir}/{self.sanitize_filename(feed.feed.get("title", ""))}"
+        podcast_dir = f"{(storage_path or self.output_dir)}/{self.sanitize_filename(feed.feed.get("title", ""))}"
+        podcast_dir = os.path.normpath(podcast_dir)
         os.makedirs(podcast_dir, exist_ok=True)
+        print(f"Downloading to {podcast_dir} ...")
 
         for i, entry in enumerate(entries):
             cntr=i+1
@@ -267,14 +278,15 @@ class PodcastDownloader:
             
             # Check if season/episode metadata available
             # Fallback to ISO date as string if not
-            if self.prefix == 'episode':
+            prefix_arg = file_prefix or self.prefix
+            if prefix_arg == 'episode':
                 try:
                     season = entry.itunes_season
                     episode = entry.itunes_episode
                     prefix = f"S{season}E{episode} "
                 except Exception:
                     prefix = date_str
-            elif self.prefix == 'date':
+            elif prefix_arg == 'date':
                 prefix = date_str
             else:
                 prefix = ''
@@ -331,7 +343,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d","--output-dir",
         default="podcasts",
-        help="Directory where MP3 files will be saved (default: podcasts)")
+        help="Directory where MP3 files will be saved (default: podcasts in the current working directory).  If this option is specified when adding a new feed, it will be saved in the cache and applied to all new episodes when updating the feed.")
     parser.add_argument(
         "-u","--user-agent",
         default="Wget/1.25.0",
@@ -343,7 +355,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c", "--ignore-rss-cache",
         action="store_true",
-        help="Ignore the ETag and Last-Modified headers (treats feed as new)")
+        help="Ignore the cache; this treats the feed as new (ETag and Last-Modified headers are disregarded as well as any cached output directory and prefix settings)")
     parser.add_argument(
         "-o", "--overwrite",
         action="store_true",
@@ -351,7 +363,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p", "--prefix",
         choices=['date','episode'],
-        help="Prefix the episode filename with the ISO date (YYYY-MM-DD) or season+episode number (SxEy); if 'episode' is specified but the field is not available, then the date will be used")
+        help="Prefix the episode filename with the ISO date (YYYY-MM-DD) or season+episode number (SxEy); if 'episode' is specified but the field is not available, then the date will be used. If this option is specified when adding a new feed, it will be saved in the cache and applied to all new episodes when updating the feed.")
     parser.add_argument(
         "-4", "--id3v24",
         action="store_true",

@@ -66,23 +66,33 @@ The inspiration to use `uv` is thanks to this blog post : [Fun with uv and PEP 7
 ```shell
 usage: acast_dl.py [-h] (--rss-url RSS_URL | --update) [-d OUTPUT_DIR] [-u USER_AGENT] [-n MAX_DOWNLOAD] [-c] [-o] [-p {date,episode}] [-4]
 
-Download podcast episodes from an Acast RSS feed (or any other podcast platform that provides a compatible RSS feed) and embed metadata into MP3 files.
+Download podcast episodes from an Acast RSS feed (or any other podcast platform that provides 
+a compatible RSS feed) and embed metadata into MP3 files.
 
 options:
   -h, --help            show this help message and exit
   --rss-url RSS_URL     Podcast RSS feed URL
   --update              Update podcasts from rss_cache.json
   -d, --output-dir OUTPUT_DIR
-                        Directory where MP3 files will be saved (default: podcasts)
+                        Directory where MP3 files will be saved (default: podcasts in the 
+						current working directory). If this option is specified when adding 
+						a new feed, it will be saved in the cache and applied to all new 
+						episodes when updating the feed.
   -u, --user-agent USER_AGENT
                         Set a custom User-Agent header (default: Wget/1.25.0)
   -n, --max-download MAX_DOWNLOAD
                         Only download the N most recent podcast episodes
   -c, --ignore-rss-cache
-                        Ignore the ETag and Last-Modified headers (treats feed as new)
+                        Ignore the cache; this treats the feed as new (ETag and Last-Modified 
+						headers are disregarded as well as any cached output directory and 
+						prefix settings)
   -o, --overwrite       Overwrite an existing episode if a file of the same name already exists
   -p, --prefix {date,episode}
-                        Prefix the episode filename with the ISO date (YYYY-MM-DD) or season+episode number (SxEy); if 'episode' is specified but the field is not available, then the date will be used
+                        Prefix the episode filename with the ISO date (YYYY-MM-DD) or 
+						season+episode number (SxEy); if 'episode' is specified but the field 
+						is not available, then the date will be used. If this option is 
+						specified when adding a new feed, it will be saved in the cache and 
+						applied to all new episodes when updating the feed.
   -4, --id3v24          Write ID3v2.4 tags instead of ID3v2.3 (default)
 ```
 
@@ -96,7 +106,6 @@ The `prefix=episode` option uses the `itunes:season` and `itunes:episode` fields
 
 - [ ] add arguments
   - [ ] `--cover-as-jpeg` : convert all cover images to JPEG
-  - [X] `--prefix` : prefix MP3 filenames with (pubDate as `YYYY-MM-DD` or season/episode as `SxEy` if available)
 - [ ] Autodetect language for comments/description if possible
 
 # Similar Projects
