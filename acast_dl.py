@@ -113,7 +113,9 @@ class PodcastDownloader:
             self.id3version2=3
 
     def sanitize_filename(self, name):
-        return re.sub(r'[\\/*?:"<>|]', "", name)
+        name = re.sub(r':', " -", name) # Substitute colon with a hyphen to make titles more readable
+        name = re.sub(r'[\\/*?:"<>|]', "", name) # Remove unsafe characters
+        return re.sub(' +', ' ', name) # Remove any double spaces caused by character replacement
 
     def set_metadata(self, mp3_path, metadata, image_url=None):
         print(f"Tagging: {mp3_path}")
@@ -284,7 +286,7 @@ class PodcastDownloader:
                     season = entry.itunes_season
                     episode = entry.itunes_episode
                     prefix = f"S{season}E{episode} "
-                except Exception:
+                except Exception as e:
                     prefix = date_str
             elif prefix_arg == 'date':
                 prefix = date_str
