@@ -52,6 +52,8 @@ class CachedRSSFeed:
             print("Warning: ignoring RSS cache - treating feed as new")
             saved_etag = None
             saved_modified = None
+            saved_path = storage_path
+            saved_prefix = file_prefix
         else:
             saved_etag = self.feeds.get(url, {}).get("etag")
             saved_modified = self.feeds.get(url, {}).get("last-modified")
